@@ -1,7 +1,8 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
+import io
 
 st.title("Image Colour Compressor")
 
@@ -18,19 +19,20 @@ if uploaded_file is not None:
     h, w, c = img_array.shape
     pixels = img_array.reshape(-1, 3)
 
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    kmeans.fit(pixels)
-    labels = kmeans.labels_
-    new_colors = kmeans.cluster_centers_.astype("uint8")
+    with st.spinner("Compressing colours..."):
+        kmeans = MiniBatchKMeans(n_clusters=k, random_state=42, n_init=3, batch_size=1024)
+        kmeans.fit(pixels)
+        labels = kmeans.labels_
+        new_colors = kmeans.cluster_centers_.astype("uint8")
 
-    compressed_pixels = new_colors[labels]
-    compressed_img_array = compressed_pixels.reshape(h, w, c)
-    compressed_image = Image.fromarray(compressed_img_array)
+        compressed_pixels = new_colors[labels]
+        compressed_img_array = compressed_pixels.reshape(h, w, c)
+        compressed_image = Image.fromarray(compressed_img_array)
 
     st.subheader(f"Compressed Image ({k} colours)")
     st.image(compressed_image)
-# Add a download button
-    import io
+
+    # Download button
     buf = io.BytesIO()
     compressed_image.save(buf, format="PNG")
     byte_data = buf.getvalue()
