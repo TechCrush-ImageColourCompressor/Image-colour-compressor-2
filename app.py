@@ -29,3 +29,15 @@ if uploaded_file is not None:
 
     st.subheader(f"Compressed Image ({k} colours)")
     st.image(compressed_image)
+# Add a download button
+    import io
+    buf = io.BytesIO()
+    compressed_image.save(buf, format="PNG")
+    byte_data = buf.getvalue()
+
+    st.download_button(
+        label="Download Compressed Image",
+        data=byte_data,
+        file_name="compressed_image.png",
+        mime="image/png"
+    )
